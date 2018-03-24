@@ -7,6 +7,8 @@ using namespace std;
 
 int main()
 {
-
+  custom_map<int, std::string> myMap{};
+  for (auto iter : myMap)
+    std::cout << iter.first;
   return 0;
 }

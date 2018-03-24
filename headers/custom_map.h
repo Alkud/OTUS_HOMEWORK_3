@@ -3,6 +3,7 @@
 #pragma once
 
 #include <iterator>
+#include <stdexcept>
 
 template< typename Key, typename T,
           class Compare = std::less<Key>,
@@ -13,13 +14,14 @@ public:
 
   using key_type = Key;
   using mapped_type = T;
-  using value_type = std::pair<const Key, T>;
+  using value_type = std::pair<const Key, T>;  
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using key_compare = Compare;
   using allocator_type = Allocator;
   using reference = value_type&;
   using const_reference = const value_type&;
+  using rvalue_reference = value_type&&;
   using pointer = typename std::allocator_traits<Allocator>::pointer;
   using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
 
@@ -28,8 +30,12 @@ private:
   class node
   {
   public:
-    node(value_type _value) :
-      value{_value}, pLeft{nullptr}, pRight{nullptr},
+    node(rvalue_reference _value) :
+      value{std::forward(_value)}, pLeft{nullptr}, pRight{nullptr},
+      pParent{nullptr}{}
+
+    node(const_reference _value) :
+      value{std::forward(_value)}, pLeft{nullptr}, pRight{nullptr},
       pParent{nullptr}{}
 
     ~node(){}
@@ -40,43 +46,44 @@ private:
     node* pRight;
   };
 
+
 public:
 
   class iterator:  public std::iterator<
                           std::forward_iterator_tag, // iterator_category
-                          value_type,                // value_type
+                          node,                      // value_type
                           difference_type,           // difference_type
-                          pointer,                   // pointer
-                          reference                  // reference
+                          node*,                     // pointer
+                          node&                      // reference
                                         >
   {
   public:
     using self_type = iterator ;
     using iterator_category = std::forward_iterator_tag ;
 
-    iterator(node* _ptr) : ptr(_ptr) {}
+    iterator(node* pointerToNode) : pNode(pointerToNode) {}
 
     self_type operator++()            // prefix increment
     {
-      if (ptr->pRight != nullptr)     // the node has a right child
+      if (pNode->pRight != nullptr)     // the node has a right child
       {
-        ptr = ptr->pRight;            // go to the right child
-        while (ptr->pLeft != nullptr) // then find the leftmost child
+        pNode = pNode->pRight;            // go to the right child
+        while (pNode->pLeft != nullptr) // then find the leftmost child
         {
-          ptr = ptr->pLeft;
+          pNode = pNode->pLeft;
         }
-        ptr = ptr->pLeft;
+        pNode = pNode->pLeft;
       }
       else                            // the node has no right child
       {
-        node* tmpPtr{ptr->pParent};   // find its parent
-        while (tmpPtr->pRight == ptr) // iterate through parents
+        node* tmpNode{pNode->pParent};   // find its parent
+        while (tmpNode->pRight == pNode) // iterate through parents
         {                             // while the are right parents
-          ptr = tmpPtr;
-          tmpPtr = tmpPtr->pParent;
+          pNode = tmpNode;
+          tmpNode = tmpNode->pParent;
         }
-        if (ptr->pRight != tmpPtr)    //
-          ptr = tmpPtr;
+        if (pNode->pRight != tmpNode)    //
+          pNode = tmpNode;
       }
       return *this;
     }
@@ -84,38 +91,70 @@ public:
     self_type operator++(int)         // postfix increment
     {
       self_type tmpIterator{*this};
-      ++ptr;
+      ++pNode;
       return tmpIterator;
     }
 
-    reference operator*() { return *ptr; }
-    pointer operator->() { return ptr; }
-    bool operator==(const self_type& other) { return ptr == other.ptr; }
-    bool operator!=(const self_type& other) { return ptr != other.ptr; }
-   private:
-    node* ptr;
+    reference operator*() { return pNode->value; }
+    pointer operator->() { return &(pNode->value); }
+    bool operator==(const self_type& other) { return pNode == other.pNode; }
+    bool operator!=(const self_type& other) { return pNode != other.pNode; }
+
+    node* pNode;
   };
 
-  class const_iterator : public std::iterator<
+  class const_iterator:  public std::iterator<
                                 std::forward_iterator_tag, // iterator_category
-                                value_type,                // value_type
+                                node,                      // value_type
                                 difference_type,           // difference_type
-                                pointer,                   // pointer
-                                reference                  // reference
-                                             >
-          {
-              public:
-                  using self_type = const_iterator;
-                  typedef std::forward_iterator_tag iterator_category;
-                  const_iterator(pointer ptr) : ptr_(ptr) { }
-                  self_type operator++() { self_type i = *this; ptr_++; return i; }
-                  self_type operator++(int) { ptr_++; return *this; }
-                  const reference operator*() { return *ptr_; }
-                  const pointer operator->() { return ptr_; }
-                  bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
-                  bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
-              private:
-                  pointer ptr_;
+                                node*,                     // pointer
+                                node&                      // reference
+                                              >
+  {
+  public:
+    using self_type = const_iterator ;
+    using iterator_category = std::forward_iterator_tag ;
+
+    const_iterator(node* pointerToNode) : pNode(pointerToNode) {}
+
+    self_type operator++()            // prefix increment
+    {
+      if (pNode->pRight != nullptr)     // the node has a right child
+      {
+        pNode = pNode->pRight;            // go to the right child
+        while (pNode->pLeft != nullptr) // then find the leftmost child
+        {
+          pNode = pNode->pLeft;
+        }
+        pNode = pNode->pLeft;
+      }
+      else                            // the node has no right child
+      {
+        node* tmpNode{pNode->pParent};   // find its parent
+        while (tmpNode->pRight == pNode) // iterate through parents
+        {                             // while the are right parents
+          pNode = tmpNode;
+          tmpNode = tmpNode->pParent;
+        }
+        if (pNode->pRight != tmpNode)    //
+          pNode = tmpNode;
+      }
+      return *this;
+    }
+
+    self_type operator++(int)         // postfix increment
+    {
+      self_type tmpIterator{*this};
+      ++pNode;
+      return tmpIterator;
+    }
+
+    const_reference operator*() { return *pNode; }
+    const_pointer operator->() { return pNode; }
+    bool operator==(const self_type& other) { return pNode == other.pNode; }
+    bool operator!=(const self_type& other) { return pNode != other.pNode; }
+
+    node* pNode;
   };
 
 
@@ -125,12 +164,21 @@ public:
       return nullptr;
 
     iterator result{root};
-    while(result->pLeft != nullptr) // find the left most node
-      result = result->pLeft;
+    while(result.pNode->pLeft != nullptr) // find the leftmost node
+      result = result.pNode->pLeft;
     return result;
   }
 
-  iterator end();
+  iterator end()
+  {
+    if (nullptr == root)              // map is empty
+      return nullptr;
+
+    iterator result{root};
+    while(result.pNode->pRight != nullptr)  // find the right most node
+      result = result.pNode->pRight;
+    return result.pNode->pRight;
+  }
 
   custom_map()
   {}
@@ -138,6 +186,51 @@ public:
   ~custom_map()
   {}
 
+  reference at(const Key& key)
+  {
+    auto iter{begin()};
+    while (iter->value.first != key && iter != end())
+      std::advance(iter, 1);
+    if (end() == iter)
+      throw std::out_of_range{"Key not found"};
+    return iter->value;
+  }
+
+  reference operator[](Key&& key)
+  {
+
+  }
+
 private:
   node* root{nullptr};
+
+  addNewNode(value_type&& newValue)
+  {
+    if (root == nullptr)
+    {
+      root = new node{std::forward(newValue)};
+    }
+    else
+    {
+      addChildNode(std::forward(newValue), root);
+    }
+  }
+
+  addChildNode(rvalue_reference newValue, node* parent)
+  {
+    if(Compare(newValue.first, parent->value.first))          // if template comparator gives TRUE
+    {                                                         // add value to the LEFT child node
+      if(nullptr == parent->pLeft)
+        parent->pLeft = new node(std::forward(newValue));     // create new child, if it doesn't exist
+      else
+        add(std::forward(newValue), parent->pRight);          // or transfer it to the left child
+    }
+    else                                                      // if template comparator gives FALSE
+    {                                                         // add value to the RIGHT child node
+      if(nullptr == parent->pLeft)
+        parent->pLeft = new node(std::forward(newValue));     // create new child, if it doesn't exist
+      else
+        add(std::forward(newValue), parent->pLeft);           // or transfer it to the right child
+    }
+  }
 };
