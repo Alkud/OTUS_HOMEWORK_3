@@ -8,7 +8,8 @@ using namespace std;
 int main()
 {
   custom_map<int, std::string> myMap{};
-
+  for (size_t idx{}; idx < 100; idx++)
+    myMap.insert(std::make_pair<int, std::string>(idx, std::to_string(idx)));
   for (auto iter : myMap)
     std::cout << iter.first;
   return 0;
