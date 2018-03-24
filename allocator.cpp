@@ -12,5 +12,7 @@ int main()
     myMap.insert(std::make_pair<int, std::string>(idx, std::to_string(idx)));
   for (auto iter : myMap)
     std::cout << iter.first;
+  custom_map<int, std::string>::iterator iter{myMap.begin()};
+  iter->first;
   return 0;
 }
