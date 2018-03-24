@@ -4,6 +4,7 @@
 
 #include <iterator>
 #include <stdexcept>
+#include <memory>
 
 template< typename Key, typename T,
           class Compare = std::less<Key>,
@@ -31,19 +32,23 @@ private:
   {
   public:
     node(rvalue_reference _value) :
-      value{std::forward(_value)}, pLeft{nullptr}, pRight{nullptr},
-      pParent{nullptr}{}
+      value{std::move(_value)},
+      pLeft{std::shared_ptr<node>{nullptr}},
+      pRight{std::shared_ptr<node>{nullptr}},
+      pParent{std::shared_ptr<node>{nullptr}}{}
 
     node(const_reference _value) :
-      value{std::forward(_value)}, pLeft{nullptr}, pRight{nullptr},
-      pParent{nullptr}{}
+      value{_value},
+      pLeft{std::shared_ptr<node>{nullptr}},
+      pRight{std::shared_ptr<node>{nullptr}},
+      pParent{std::shared_ptr<node>{nullptr}}{}
 
     ~node(){}
 
     value_type value;
-    node* pParent;
-    node* pLeft;
-    node* pRight;
+    std::shared_ptr<node> pParent;
+    std::shared_ptr<node> pLeft;
+    std::shared_ptr<node> pRight;
   };
 
 
@@ -61,28 +66,29 @@ public:
     using self_type = iterator ;
     using iterator_category = std::forward_iterator_tag ;
 
-    iterator(node* pointerToNode) : pNode(pointerToNode) {}
+    iterator(node* pointerToNode) : pNode{pointerToNode} {}
 
-    self_type operator++()            // prefix increment
+    self_type operator++()              // prefix increment
     {
+
       if (pNode->pRight != nullptr)     // the node has a right child
       {
-        pNode = pNode->pRight;            // go to the right child
+        pNode = pNode->pRight;          // go to the right child
         while (pNode->pLeft != nullptr) // then find the leftmost child
         {
           pNode = pNode->pLeft;
         }
         pNode = pNode->pLeft;
       }
-      else                            // the node has no right child
+      else                              // the node has no right child
       {
-        node* tmpNode{pNode->pParent};   // find its parent
-        while (tmpNode->pRight == pNode) // iterate through parents
-        {                             // while the are right parents
+        std::shared_ptr<node> tmpNode{pNode->pParent};  // find its parent
+        while (tmpNode->pRight == pNode)// iterate through parents
+        {                               // while the are right parents
           pNode = tmpNode;
           tmpNode = tmpNode->pParent;
         }
-        if (pNode->pRight != tmpNode)    //
+        if (pNode->pRight != tmpNode)   //
           pNode = tmpNode;
       }
       return *this;
@@ -100,7 +106,7 @@ public:
     bool operator==(const self_type& other) { return pNode == other.pNode; }
     bool operator!=(const self_type& other) { return pNode != other.pNode; }
 
-    node* pNode;
+    std::shared_ptr<node> pNode;
   };
 
   class const_iterator:  public std::iterator<
@@ -160,31 +166,31 @@ public:
 
   iterator begin()
   {
-    if (nullptr == root)              // map is empty
+    if (nullptr == root)                  // map is empty
       return nullptr;
 
-    iterator result{root};
-    while(result.pNode->pLeft != nullptr) // find the leftmost node
-      result = result.pNode->pLeft;
+    iterator result{root.get()};
+    while(result.pNode->pLeft.get() != nullptr) // find the leftmost node
+      result = result.pNode->pLeft.get();
     return result;
   }
 
   iterator end()
   {
-    if (nullptr == root)              // map is empty
-      return nullptr;
-
-    iterator result{root};
-    while(result.pNode->pRight != nullptr)  // find the right most node
-      result = result.pNode->pRight;
-    return result.pNode->pRight;
+    return nullptr;
   }
 
-  custom_map()
+  custom_map() :
+    root{nullptr}
   {}
 
   ~custom_map()
-  {}
+  {
+    if (root != nullptr)
+    {
+
+    }
+  }
 
   reference at(const Key& key)
   {
@@ -196,13 +202,13 @@ public:
     return iter->value;
   }
 
-  std::pair<bool, iterator> insert(const_reference newValue)
+  std::pair<bool, iterator> insert(rvalue_reference newValue)
   {
     if (root == nullptr)
     {
       try
       {
-        root = new node{std::forward(newValue)};
+        root = new node{std::move(newValue)};
       }
       catch(std::exception& ex)
       {
@@ -213,51 +219,94 @@ public:
     }
     else
     {
-      return(addChildNode(std::forward(newValue), root));
+      return(addChildNode(std::move(newValue), root));
     }
   }
 
-  reference operator[](Key&& key)
+  std::pair<bool, iterator> insert(const_reference newValue)
+  {
+    if (root == nullptr)
+    {
+      try
+      {
+        root = new node{std::move(newValue)};
+      }
+      catch(std::exception& ex)
+      {
+        std::cerr << ex.what();
+        return std::make_pair<bool, iterator>(false, iterator{nullptr});
+      }
+      return true;
+    }
+    else
+    {
+      return(addChildNode(std::move(newValue), root));
+    }
+  }
+
+
+  reference operator[](const Key& key)
   {
 
   }
 
 private:
-  node* root{nullptr};  
 
   std::pair<bool, iterator> addChildNode(rvalue_reference newValue, node* parent)
   {
-    try
-    {
-      if(Compare(newValue.first, parent->value.first))                  // if template comparator gives TRUE
-      {                                                                 // add value to the LEFT child node
-        if(nullptr == parent->pLeft)
-        {
-          parent->pLeft = new node(std::forward(newValue));             // create new child, if it doesn't exist
-          return std::make_pair<true, iterator>(true, iterator{parent->pLeft});
-        }
-        else
-        {
-          return(addChildNode(std::forward(newValue), parent->pRight)); // or transfer it to the left child
-        }
+    if(Compare(newValue.first, parent->value.first))                  // if template comparator gives TRUE
+    {                                                                 // add value to the LEFT child node
+      if(nullptr == parent->pLeft)
+      {
+        parent->pLeft = new node(std::move(newValue));             // create new child, if it doesn't exist
+        return std::make_pair<true, iterator>(true, iterator{parent->pLeft});
       }
-      else                                                              // if template comparator gives FALSE
-      {                                                                 // add value to the RIGHT child node
-        if(nullptr == parent->pRight)
-        {
-          parent->pRight = new node(std::forward(newValue));             // create new child, if it doesn't exist
-          return std::make_pair<true, iterator>(true, iterator{parent->pRight});
-        }
-        else
-        {
-          return(addChildNode(std::forward(newValue), parent->pRight));  // or transfer it to the right child
-        }
+      else
+      {
+        return(addChildNode(std::move(newValue), parent->pRight)); // or transfer it to the left child
       }
     }
-    catch(std::exception& ex)
-    {
-      std::cerr << ex.what();
-      return std::make_pair<bool, iterator>(false, iterator{nullptr});
+    else                                                              // if template comparator gives FALSE
+    {                                                                 // add value to the RIGHT child node
+      if(nullptr == parent->pRight)
+      {
+        parent->pRight = new node(std::move(newValue));             // create new child, if it doesn't exist
+        return std::make_pair<true, iterator>(true, iterator{parent->pRight});
+      }
+      else
+      {
+        return(addChildNode(std::move(newValue), parent->pRight));  // or transfer it to the right child
+      }
     }
   }
+
+  std::pair<bool, iterator> addChildNode(const_reference newValue, node* parent)
+  {
+    if(Compare(newValue.first, parent->value.first))                  // if template comparator gives TRUE
+    {                                                                 // add value to the LEFT child node
+      if(nullptr == parent->pLeft)
+      {
+        parent->pLeft = new node(newValue);                           // create new child, if it doesn't exist
+        return std::make_pair<true, iterator>(true, iterator{parent->pLeft});
+      }
+      else
+      {
+        return(addChildNode(newValue, parent->pRight));               // or transfer it to the left child
+      }
+    }
+    else                                                              // if template comparator gives FALSE
+    {                                                                 // add value to the RIGHT child node
+      if(nullptr == parent->pRight)
+      {
+        parent->pRight = new node(newValue);                          // create new child, if it doesn't exist
+        return std::make_pair<true, iterator>(true, iterator{parent->pRight});
+      }
+      else
+      {
+        return(addChildNode(newValue, parent->pRight));               // or transfer it to the right child
+      }
+    }
+  }
+
+  std::shared_ptr<node> root{nullptr};  // MAP ROOT
 };
