@@ -196,41 +196,68 @@ public:
     return iter->value;
   }
 
+  std::pair<bool, iterator> insert(const_reference newValue)
+  {
+    if (root == nullptr)
+    {
+      try
+      {
+        root = new node{std::forward(newValue)};
+      }
+      catch(std::exception& ex)
+      {
+        std::cerr << ex.what();
+        return std::make_pair<bool, iterator>(false, iterator{nullptr});
+      }
+      return true;
+    }
+    else
+    {
+      return(addChildNode(std::forward(newValue), root));
+    }
+  }
+
   reference operator[](Key&& key)
   {
 
   }
 
 private:
-  node* root{nullptr};
+  node* root{nullptr};  
 
-  addNewNode(value_type&& newValue)
+  std::pair<bool, iterator> addChildNode(rvalue_reference newValue, node* parent)
   {
-    if (root == nullptr)
+    try
     {
-      root = new node{std::forward(newValue)};
+      if(Compare(newValue.first, parent->value.first))                  // if template comparator gives TRUE
+      {                                                                 // add value to the LEFT child node
+        if(nullptr == parent->pLeft)
+        {
+          parent->pLeft = new node(std::forward(newValue));             // create new child, if it doesn't exist
+          return std::make_pair<true, iterator>(true, iterator{parent->pLeft});
+        }
+        else
+        {
+          return(addChildNode(std::forward(newValue), parent->pRight)); // or transfer it to the left child
+        }
+      }
+      else                                                              // if template comparator gives FALSE
+      {                                                                 // add value to the RIGHT child node
+        if(nullptr == parent->pRight)
+        {
+          parent->pRight = new node(std::forward(newValue));             // create new child, if it doesn't exist
+          return std::make_pair<true, iterator>(true, iterator{parent->pRight});
+        }
+        else
+        {
+          return(addChildNode(std::forward(newValue), parent->pRight));  // or transfer it to the right child
+        }
+      }
     }
-    else
+    catch(std::exception& ex)
     {
-      addChildNode(std::forward(newValue), root);
-    }
-  }
-
-  addChildNode(rvalue_reference newValue, node* parent)
-  {
-    if(Compare(newValue.first, parent->value.first))          // if template comparator gives TRUE
-    {                                                         // add value to the LEFT child node
-      if(nullptr == parent->pLeft)
-        parent->pLeft = new node(std::forward(newValue));     // create new child, if it doesn't exist
-      else
-        add(std::forward(newValue), parent->pRight);          // or transfer it to the left child
-    }
-    else                                                      // if template comparator gives FALSE
-    {                                                         // add value to the RIGHT child node
-      if(nullptr == parent->pLeft)
-        parent->pLeft = new node(std::forward(newValue));     // create new child, if it doesn't exist
-      else
-        add(std::forward(newValue), parent->pLeft);           // or transfer it to the right child
+      std::cerr << ex.what();
+      return std::make_pair<bool, iterator>(false, iterator{nullptr});
     }
   }
 };
