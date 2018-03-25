@@ -97,7 +97,7 @@ public:
     using self_type = iterator ;
     using iterator_category = std::forward_iterator_tag ;
 
-    iterator(node* pointerToNode = nullptr) : pNode{pointerToNode} {}
+    iterator(node* pointerToNode = nullptr) : pNode{pointerToNode}{}
     iterator(const iterator& other) : pNode{other.pNode} {}
     iterator(iterator&& other) : pNode{nullptr} {std::swap(pNode, other.pNode);}
     iterator& operator=(const iterator& other) {pNode = other.pNode; return *this;}
@@ -108,22 +108,22 @@ public:
 
       if (pNode->pRight != nullptr)                     // the node has a right child
       {
-        pNode = pNode->pRight;                          // go to the right child
+        pNode = pNode->pRight.get();                          // go to the right child
         while (pNode->pLeft != nullptr)                 // then find the leftmost child
         {
-          pNode = pNode->pLeft;
+          pNode = pNode->pLeft.get();
         }
-        pNode = pNode->pLeft;
+        pNode = pNode->pLeft.get();
       }
       else                                              // the node has no right child
       {
-        std::shared_ptr<node> tmpNode{pNode->pParent};  // find its parent
-        while (tmpNode->pRight == pNode)                // iterate through parents
+        node* tmpNode{pNode->pParent.get()};  // find its parent
+        while (tmpNode->pRight.get() == pNode)                // iterate through parents
         {                                               // while the are right parents
           pNode = tmpNode;
-          tmpNode = tmpNode->pParent;
+          tmpNode = tmpNode->pParent.get();
         }
-        if (pNode->pRight != tmpNode)                   //
+        if (pNode->pRight.get() != tmpNode)                   //
           pNode = tmpNode;
       }
       return *this;
@@ -141,7 +141,7 @@ public:
     bool operator==(const self_type& other) { return pNode == other.pNode; }
     bool operator!=(const self_type& other) { return pNode != other.pNode; }
 
-    std::shared_ptr<node> pNode;
+    node* pNode;
   };
 
   class const_iterator:  public std::iterator<
