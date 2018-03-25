@@ -14,20 +14,22 @@ find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 #Process project_version_minor.h to set OTUS_HW_1_VERSION_MINOR value equal to PROJECT_VERSION_MINOR
 #configure_file(ip_filter_version.h.in ip_filter_version.h)
 
-#Set executable target
-add_executable(allocator allocator.cpp)
-
 #Set library target
 add_library(custom_allocator INTERFACE)
-target_sources(custom_allocator INTERFACE custom_allocator.h)
+target_sources(custom_allocator INTERFACE ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h)
 target_include_directories(custom_allocator INTERFACE ${PROJECT_SOURCE_DIR}/headers)
 add_library(custom_map INTERFACE)
-target_sources(custom_map INTERFACE custom_map.h)
+target_sources(custom_map INTERFACE ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
 target_include_directories(custom_map INTERFACE ${PROJECT_SOURCE_DIR}/headers)
 
+#Set executable target
 set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
-add_executable(dummy EXCLUDE_FROM_ALL ${HEADERS})
-target_link_libraries(dummy custom_allocator custom map)
+add_executable(allocator allocator.cpp ${HEADERS})
+#target_link_libraries(allocator custom_allocator custom map)
+
+#set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
+#add_executable(dummy EXCLUDE_FROM_ALL ${HEADERS})
+#target_link_libraries(dummy custom_allocator custom map)
 
 #Set test target_link_libraries
 add_executable(otus_hw_3_test otus_hw_3_test.cpp)

@@ -220,8 +220,13 @@ public:
   }
 
   custom_map() :
-    root{nullptr}
-  {}
+    root{nullptr}{}
+
+  custom_map(const custom_map& other) :
+    root{other.root}{}
+
+  custom_map(custom_map&& other) :
+    root{nullptr}{std::swap(root, other.root);}
 
   ~custom_map()
   {}
