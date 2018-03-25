@@ -42,6 +42,38 @@ private:
       value{_value},
       pLeft{}, pRight{}, pParent{}{}
 
+    node(const node& other) :
+      value{other.value},
+      pLeft{other.pLeft}, pRight{other.pRight}, pParent{other.pParent}{}
+
+    node(node&& other) :
+      value{}, pLeft{}, pRight{}, pParent{}
+    {
+      std::swap(value, other.value);
+      std::swap(pLeft,other.pLeft);
+      std::swap(pRight, other.pRight);
+      std::swap(pParent, other.pParent);
+    }
+
+    node& operator=(const node& other)
+    {
+      value = other.value;
+      pLeft = other.pLeft;
+      pRight = other.pRight;
+      pParent = other.pParent;
+      return *this;
+    }
+
+    node& operator=(node&& other)
+    {
+      std::swap(value, other.value);
+      std::swap(pLeft,other.pLeft);
+      std::swap(pRight, other.pRight);
+      std::swap(pParent, other.pParent);
+      return *this;
+    }
+
+
     ~node(){}
 
     value_type value;
@@ -65,7 +97,11 @@ public:
     using self_type = iterator ;
     using iterator_category = std::forward_iterator_tag ;
 
-    iterator(node* pointerToNode = nullptr) : pNode{std::make_shared<node>(pointerToNode)} {}
+    iterator(node* pointerToNode = nullptr) : pNode{pointerToNode} {}
+    iterator(const iterator& other) : pNode{other.pNode} {}
+    iterator(iterator&& other) : pNode{nullptr} {std::swap(pNode, other.pNode);}
+    iterator& operator=(const iterator& other) {pNode = other.pNode; return *this;}
+    iterator& operator=(iterator&& other){std::swap(pNode, other.pNode); return *this;}
 
     self_type operator++()                              // prefix increment
     {
@@ -120,7 +156,11 @@ public:
     using self_type = const_iterator ;
     using iterator_category = std::forward_iterator_tag ;
 
-    const_iterator(node* pointerToNode) : pNode(pointerToNode) {}
+    const_iterator(node* pointerToNode = nullptr) : pNode{pointerToNode} {}
+    const_iterator(const const_iterator& other) : pNode{other.pNode} {}
+    const_iterator(const_iterator&& other) : pNode{nullptr} {std::swap(pNode, other.pNode);}
+    const_iterator& operator=(const const_iterator& other) {pNode = other.pNode; return *this;}
+    const_iterator& operator=(const_iterator&& other){std::swap(pNode, other.pNode); return *this;}
 
     self_type operator++()               // prefix increment
     {
@@ -254,7 +294,7 @@ private:
         if(nullptr == parent->pLeft)
         {
           parent->pLeft = std::make_shared<node>                        // create new child, if it doesn't exist
-                          (new node(std::move(newValue)));
+                          (std::move(newValue));
           return std::make_pair(true, iterator{parent->pLeft.get()});
         }
         else
@@ -267,7 +307,7 @@ private:
         if(nullptr == parent->pRight)
         {
           parent->pRight = std::make_shared<node>                       // create new child, if it doesn't exist
-                           (new node(std::move(newValue)));
+                           (std::move(newValue));
           return std::make_pair(true, iterator{parent->pRight.get()});
         }
         else
