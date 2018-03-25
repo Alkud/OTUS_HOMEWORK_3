@@ -105,26 +105,28 @@ public:
 
     self_type operator++()                              // prefix increment
     {
-
       if (pNode->pRight != nullptr)                     // the node has a right child
       {
-        pNode = pNode->pRight.get();                          // go to the right child
+        pNode = pNode->pRight.get();                    // go to the right child
         while (pNode->pLeft != nullptr)                 // then find the leftmost child
         {
           pNode = pNode->pLeft.get();
         }
-        pNode = pNode->pLeft.get();
       }
-      else                                              // the node has no right child
+      else if (pNode->pParent.get() != nullptr)        // the node has no right child but has a parent
       {
-        node* tmpNode{pNode->pParent.get()};  // find its parent
-        while (tmpNode->pRight.get() == pNode)                // iterate through parents
-        {                                               // while the are right parents
+        node* tmpNode{pNode->pParent.get()};           // find its parent
+        while (tmpNode->pRight.get() == pNode)         // iterate through parents
+        {                                              // while the are right parents
           pNode = tmpNode;
           tmpNode = tmpNode->pParent.get();
         }
-        if (pNode->pRight.get() != tmpNode)                   //
+        if (pNode->pRight.get() != tmpNode)            //
           pNode = tmpNode;
+      }
+      else                                             // a node having no parent is root
+      {
+        pNode = nullptr;
       }
       return *this;
     }
@@ -164,25 +166,28 @@ public:
 
     self_type operator++()               // prefix increment
     {
-      if (pNode->pRight != nullptr)      // the node has a right child
+      if (pNode->pRight != nullptr)                     // the node has a right child
       {
-        pNode = pNode->pRight;           // go to the right child
-        while (pNode->pLeft != nullptr)  // then find the leftmost child
+        pNode = pNode->pRight.get();                    // go to the right child
+        while (pNode->pLeft != nullptr)                 // then find the leftmost child
         {
-          pNode = pNode->pLeft;
+          pNode = pNode->pLeft.get();
         }
-        pNode = pNode->pLeft;
       }
-      else                               // the node has no right child
+      else if (pNode->pParent.get() != nullptr)        // the node has no right child but has a parent
       {
-        node* tmpNode{pNode->pParent};   // find its parent
-        while (tmpNode->pRight == pNode) // iterate through parents
-        {                                // while the are right parents
+        node* tmpNode{pNode->pParent.get()};           // find its parent
+        while (tmpNode->pRight.get() == pNode)         // iterate through parents
+        {                                              // while the are right parents
           pNode = tmpNode;
-          tmpNode = tmpNode->pParent;
+          tmpNode = tmpNode->pParent.get();
         }
-        if (pNode->pRight != tmpNode)    //
+        if (pNode->pRight.get() != tmpNode)            //
           pNode = tmpNode;
+      }
+      else                                             // a node having no parent is root
+      {
+        pNode = nullptr;
       }
       return *this;
     }
@@ -216,7 +221,7 @@ public:
 
   iterator end()
   {
-    return nullptr;
+    return iterator{};
   }
 
   custom_map() :
