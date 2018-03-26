@@ -21,9 +21,13 @@ target_include_directories(custom_allocator INTERFACE ${PROJECT_SOURCE_DIR}/head
 add_library(custom_map INTERFACE)
 target_sources(custom_map INTERFACE ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
 target_include_directories(custom_map INTERFACE ${PROJECT_SOURCE_DIR}/headers)
+add_library(memory_manager INTERFACE)
+target_sources(memory_manager INTERFACE ${PROJECT_SOURCE_DIR}/headers/memory_manager.h)
+target_include_directories(memory_manager INTERFACE ${PROJECT_SOURCE_DIR}/headers)
+
 
 #Set executable target
-set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
+set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h ${PROJECT_SOURCE_DIR}/headers/memory_manager.h)
 add_executable(allocator allocator.cpp ${HEADERS})
 #target_link_libraries(allocator custom_allocator custom map)
 
@@ -54,6 +58,7 @@ set_target_properties(otus_hw_3_test PROPERTIES
 )
 
 #Link
+target_link_libraries(custom_allocator INTERFACE memory_manager)
 target_link_libraries(allocator custom_allocator custom_map)
 target_link_libraries(otus_hw_3_test
   ${Boost_LIBRARIES}

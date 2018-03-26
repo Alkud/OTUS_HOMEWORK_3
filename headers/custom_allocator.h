@@ -1,7 +1,12 @@
 // custom_allocator.h in Otus homework #3 project
 #pragma once
 
-template<typename T, std::size_t n = 2>
+#include <cstdlib>
+#include <cstring>
+#include "memory_manager.h"
+
+
+template<typename T, size_t factor = 2>
 struct custom_allocator
 {
   using value_type = T;
@@ -13,41 +18,39 @@ struct custom_allocator
   using difference_type = std::ptrdiff_t;
   template<typename U> struct rebind { typedef custom_allocator<U> other;};
 
-  custom_allocator();
-  ~custom_allocator();
+  custom_allocator(){}
+  ~custom_allocator(){}
 
-  pointer allocate(std::allocator<void>::const_pointer hint = 0)
+  pointer allocate(size_t n) throw (std::bad_alloc)
+  {
+    void* result{ manager.capture(n * sizeof(T), factor * n * sizeof(T)) }; /* allocate and reserve*/
+    return reinterpret_cast<T*>(result);
+  }
+
+  void deallocate(T* p, std::size_t n)
+  {
+    manager.release(reinterpret_cast<void*>(p));
+  }
+
+  void reallocate(T* p, std::size_t n)
   {
 
   }
 
-  void deallocate(T* p)
-  {
-
-  }
 
   template <typename U, typename... Args>
   void construct (U* p, Args&&... args)
   {
-
+    new(p) U{std::forward<Args>(args)...};
   }
 
   template <typename U>
   void destroy (U* p)
   {
-
+    p->~U();
   }
+
+private:
+  memory_manager manager{};
 };
-
-template< class T1, class T2 >
-bool operator==( const custom_allocator<T1>& lhs, const custom_allocator<T2>& rhs )
-{
-
-}
-
-template< class T1, class T2 >
-bool operator!=( const custom_allocator<T1>& lhs, const custom_allocator<T2>& rhs )
-{
-
-}
 

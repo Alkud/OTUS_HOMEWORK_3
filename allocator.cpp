@@ -1,18 +1,56 @@
 // allocator.cpp in Otus homework #3 project
 #include <iostream>
+#include <cstdlib>
+#include <map>
+#include <vector>
 #include "./headers/custom_allocator.h"
 #include "./headers/custom_map.h"
 
-using namespace std;
+template <typename Key, typename Value>
+using CustomAllocatedMap = std::map<
+Key, Value, std::less<Key>, custom_allocator<std::pair<const Key, Value>, 4>>;
+
+template <typename Key, typename Value>
+using CustomAllocatedCustomMap = custom_map<
+Key, Value, std::less<Key>, custom_allocator<std::pair<const Key, Value>, 4>>;
+
+template <typename Key, typename Value>
+using CustomMap = custom_map<const Key, Value>;
+
+int factorial(int n)
+{
+    return n == 0 ? 1 : (n * factorial(n-1));
+}
 
 int main()
 {
-  custom_map<int, std::string> myMap{};
-  for (size_t idx{}; idx < 100; idx++)
-    myMap.insert(std::make_pair<int, std::string>(idx, std::to_string(idx)));
-  for (auto iter {myMap.begin()}; iter != myMap.end();iter++)
-    std::cout << iter->first << std::endl;
-  custom_map<int, std::string>::iterator iter{myMap.begin()};
-  iter->first;
+  CustomAllocatedMap<int, int> map1{};
+  for (uint16_t idx{}; idx < 10; idx++)
+    map1.insert(std::pair<const int, int>{idx, factorial(idx)});
+
+  CustomAllocatedCustomMap<int, int> map2{};
+  for (int idx{}; idx < 10; idx++)
+    map2.insert(std::pair<const int, int>{idx, factorial(idx)});
+
+  CustomMap<int, int> map3{};
+  for (int idx{}; idx < 10; idx++)
+    map3.insert(std::pair<const int, int>{idx, factorial(idx)});
+
+  std::map<int, int> map4{};
+  for (int idx{}; idx < 10; idx++)
+    map4.insert(std::pair<const int, int>{idx, factorial(idx)});
+
+  for (auto item:map1)
+    std::cout << item.first << "." << item.second << std::endl;
+
+  for (auto item:map2)
+    std::cout << item.first << "." << item.second << std::endl;
+
+  for (auto item:map3)
+    std::cout << item.first << "." << item.second << std::endl;
+
+  for (auto item:map4)
+    std::cout << item.first << "." << item.second << std::endl;
+
   return 0;
 }
