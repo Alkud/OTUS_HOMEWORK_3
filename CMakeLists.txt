@@ -11,9 +11,6 @@ set (BOOST_MIN_VERSION "1.54.0")
 #Find Boost UTF component, get BOOST_LIBRARIES and BOOST_INCLUDE_DIR values
 find_package(Boost COMPONENTS unit_test_framework REQUIRED)
 
-#Process project_version_minor.h to set OTUS_HW_1_VERSION_MINOR value equal to PROJECT_VERSION_MINOR
-#configure_file(ip_filter_version.h.in ip_filter_version.h)
-
 #Set library target
 add_library(custom_allocator INTERFACE)
 target_sources(custom_allocator INTERFACE ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h)
@@ -29,11 +26,6 @@ target_include_directories(memory_manager INTERFACE ${PROJECT_SOURCE_DIR}/header
 #Set executable target
 set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h ${PROJECT_SOURCE_DIR}/headers/memory_manager.h)
 add_executable(allocator allocator.cpp ${HEADERS})
-#target_link_libraries(allocator custom_allocator custom map)
-
-#set(HEADERS ${PROJECT_SOURCE_DIR}/headers/custom_allocator.h ${PROJECT_SOURCE_DIR}/headers/custom_map.h)
-#add_executable(dummy EXCLUDE_FROM_ALL ${HEADERS})
-#target_link_libraries(dummy custom_allocator custom map)
 
 #Set test target_link_libraries
 add_executable(otus_hw_3_test otus_hw_3_test.cpp)
