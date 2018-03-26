@@ -44,4 +44,16 @@ BOOST_AUTO_TEST_CASE(map_test_sorting)
   BOOST_CHECK(wrongPlacementsCount == 0);
 }
 
+BOOST_AUTO_TEST_CASE(allocator_test_1)
+{
+  custom_allocator<std::string> allocator{};
+  std::string* pointer {allocator.allocate(1)};
+  allocator.construct(pointer, "w45yghdf dfgHDFGh \t 46y4\0");
+  std::string testString {"w45yghdf dfgHDFGh \t 46y4\0"};
+
+  BOOST_CHECK(*pointer == testString);
+  allocator.destroy(pointer);
+  allocator.deallocate(pointer, 1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
