@@ -41,16 +41,16 @@ int main()
     map4.insert(std::pair<const int, int>{idx, factorial(idx)});
 
   for (auto item:map1)
-    std::cout << item.first << "." << item.second << std::endl;
+    std::cout << item.first << " " << item.second << std::endl;
 
   for (auto item:map2)
-    std::cout << item.first << "." << item.second << std::endl;
+    std::cout << item.first << " " << item.second << std::endl;
 
   for (auto item:map3)
-    std::cout << item.first << "." << item.second << std::endl;
+    std::cout << item.first << " " << item.second << std::endl;
 
   for (auto item:map4)
-    std::cout << item.first << "." << item.second << std::endl;
+    std::cout << item.first << " " << item.second << std::endl;
 
   return 0;
 }
