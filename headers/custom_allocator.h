@@ -53,3 +53,4 @@ struct custom_allocator
 private:
   memory_manager manager{};
 };
+

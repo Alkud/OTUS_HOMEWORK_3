@@ -49,7 +49,7 @@ public:
 
   using key_type = Key;
   using mapped_type = T;
-  using value_type = std::pair<const Key, T>;
+  using value_type = std::pair<const Key, T>;  
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using key_compare = Compare;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <vector>
+#include <tuple>
+#include <set>
 
 struct memory_manager
 {
