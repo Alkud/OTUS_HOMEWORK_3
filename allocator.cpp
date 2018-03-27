@@ -28,26 +28,26 @@ int main()
   for (uint16_t idx{}; idx < 10; idx++)
     map1.insert(std::pair<const int, int>{idx, factorial(idx)});
 
+    for (auto item:map1)
+      std::cout << item.first << " " << item.second << std::endl;
+
   CustomAllocatedCustomMap<int, int> map2{};
   for (int idx{}; idx < 10; idx++)
     map2.insert(std::pair<const int, int>{idx, factorial(idx)});
+
+    for (auto item:map2)
+      std::cout << item.first << " " << item.second << std::endl;
 
   CustomMap<int, int> map3{};
   for (int idx{}; idx < 10; idx++)
     map3.insert(std::pair<const int, int>{idx, factorial(idx)});
 
+    for (auto item:map3)
+      std::cout << item.first << " " << item.second << std::endl;
+
   std::map<int, int> map4{};
   for (int idx{}; idx < 10; idx++)
-    map4.insert(std::pair<const int, int>{idx, factorial(idx)});
-
-  for (auto item:map1)
-    std::cout << item.first << " " << item.second << std::endl;
-
-  for (auto item:map2)
-    std::cout << item.first << " " << item.second << std::endl;
-
-  for (auto item:map3)
-    std::cout << item.first << " " << item.second << std::endl;
+    map4.insert(std::pair<const int, int>{idx, factorial(idx)});  
 
   for (auto item:map4)
     std::cout << item.first << " " << item.second << std::endl;
