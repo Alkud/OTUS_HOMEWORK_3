@@ -12,10 +12,12 @@ Key, Value, std::less<Key>, custom_allocator<std::pair<const Key, Value>, 4>>;
 
 template <typename Key, typename Value>
 using CustomAllocatedCustomMap = custom_map<
-Key, Value, std::less<Key>, custom_allocator<std::pair<const Key, Value>, 4>>;
+Key, Value, std::less<Key>,
+custom_allocator<node<std::pair<const Key, Value>>, 4>>;
 
 template <typename Key, typename Value>
-using CustomMap = custom_map<const Key, Value>;
+using CustomMap = custom_map<const Key, Value,
+std::less<Key>, std::allocator<node<std::pair<const Key, Value>>>>;
 
 int factorial(int n)
 {
@@ -51,6 +53,7 @@ int main()
 
   for (auto item:map2)
     std::cout << item.first << " " << item.second << std::endl;
+
 
   return 0;
 }

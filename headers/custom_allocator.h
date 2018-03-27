@@ -6,7 +6,7 @@
 #include "memory_manager.h"
 
 
-template<typename T, size_t factor = 2>
+template<typename T, size_t factor = 4>
 struct custom_allocator
 {
   using value_type = T;
@@ -16,7 +16,7 @@ struct custom_allocator
   using const_reference = const T&;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
-  template<typename U> struct rebind { typedef custom_allocator<U> other;};
+  template<typename U> struct rebind { typedef custom_allocator<U, factor> other;};
 
   custom_allocator(){}
   ~custom_allocator(){}
@@ -53,4 +53,3 @@ struct custom_allocator
 private:
   memory_manager manager{};
 };
-
