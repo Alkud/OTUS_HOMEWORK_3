@@ -41,7 +41,7 @@ public:
 
 template< typename Key, typename T,
           class Compare = std::less<Key>,
-          class Allocator = std::allocator<std::pair<const Key, T>>>
+          class Allocator = std::allocator<node<std::pair<const Key, T>>>>
 class custom_map
 {
 
@@ -49,7 +49,7 @@ public:
 
   using key_type = Key;
   using mapped_type = T;
-  using value_type = std::pair<const Key, T>;  
+  using value_type = std::pair<const Key, T>;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
   using key_compare = Compare;
@@ -57,8 +57,8 @@ public:
   using reference = value_type&;
   using const_reference = const value_type&;
   using rvalue_reference = value_type&&;
-  using pointer = typename std::allocator_traits<Allocator>::pointer;
-  using const_pointer = typename std::allocator_traits<Allocator>::const_pointer;
+  using pointer = value_type*;//typename std::allocator_traits<Allocator>::pointer;
+  using const_pointer = value_type* const;//typename std::allocator_traits<Allocator>::const_pointer;
 
 private:
 
@@ -331,8 +331,10 @@ private:
 
   std::pair<bool, iterator> addChildNode(rvalue_reference newValue, nodeT*& parent)
   {
+    if (newValue.first == parent->value.first)
+      return std::make_pair(false, iterator{parent});                // item exists
     if(Compare()(newValue.first, parent->value.first))               // if template comparator gives TRUE
-    {                                                                // add value to the LEFT child node
+    {
       if(nullptr == parent->pLeft)
       {
         parent->pLeft = allocator.allocate(1);
@@ -360,7 +362,7 @@ private:
       else
       {
         if (newValue.first == parent->pRight->value.first)
-          return std::make_pair(false, iterator{parent->pRight});// item exists
+          return std::make_pair(false, iterator{parent->pRight});       // item exists
         else
           return(addChildNode(std::move(newValue), parent->pRight));   // or transfer it to the right child
       }
@@ -369,6 +371,8 @@ private:
 
   std::pair<bool, iterator> addChildNode(const_reference newValue, nodeT*& parent)
   {
+    if (newValue.first == parent->value.first)
+      return std::make_pair(false, iterator{parent});                  // item exists
     if(Compare()(newValue.first, parent->value.first))                 // if template comparator gives TRUE
     {                                                                  // add value to the LEFT child node
       if(nullptr == parent->pLeft)
@@ -381,9 +385,9 @@ private:
       else
       {
         if (newValue.first == parent->pLeft->pValue.first)
-          return std::make_pair(false, iterator{parent->pLeft}); // item exists
+          return std::make_pair(false, iterator{parent->pLeft});        // item exists
         else
-          return(addChildNode(newValue, parent->pLeft));    // or transfer it to the left child
+          return(addChildNode(newValue, parent->pLeft));              // ... or transfer it to the left child
       }
     }
     else                                                               // if template comparator gives FALSE
@@ -398,9 +402,9 @@ private:
       else
       {
         if (newValue.first == parent->pRight->pValue.first)
-          return std::make_pair(false, iterator{parent->pRight});// item exists
+          return std::make_pair(false, iterator{parent->pRight});       // item exists
         else
-          return(addChildNode(newValue, parent->pRight));   // or transfer it to the right child
+          return(addChildNode(newValue, parent->pRight));                // ...or transfer it to the right child
       }
     }
   }

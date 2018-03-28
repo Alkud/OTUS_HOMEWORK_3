@@ -19,9 +19,12 @@ template <typename Key, typename Value>
 using CustomMap = custom_map<const Key, Value,
 std::less<Key>, std::allocator<node<std::pair<const Key, Value>>>>;
 
-int factorial(int n)
+constexpr uint factorial(uint n)
 {
-    return n == 0 ? 1 : (n * factorial(n-1));
+  uint result{1};
+  for (uint i{2}; i <= n; i++)
+    result *= i;
+  return result;
 }
 
 int main()
@@ -50,10 +53,6 @@ int main()
   CustomAllocatedCustomMap<int, int> map2{};
   for (int idx{}; idx < 10; idx++)
     map2.insert(std::pair<const int, int>{idx, factorial(idx)});
-
-  for (auto item:map2)
-    std::cout << item.first << " " << item.second << std::endl;
-
 
   return 0;
 }
