@@ -4,7 +4,7 @@
 cmake_minimum_required(VERSION 3.2)
 
 #Set project name, set PROJECT_VERSION_MINOR value equal to TRAVIS_BUILD NUMBER
-if (DEFINED $ENV{TRAVIS_BUILD_NUMBER})
+if (DEFINED ENV{TRAVIS_BUILD_NUMBER})
   set (VERSION_PATCH $ENV{TRAVIS_BUILD_NUMBER})
 else ()
   set (VERSION_PATCH 1)
