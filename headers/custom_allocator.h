@@ -3,11 +3,13 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <vector>
 #include "memory_manager.h"
 
 
-template<typename T, size_t factor = 4>
-struct custom_allocator
+template<typename T, size_t capacity = 10>
+struct CustomAllocator
 {
   using value_type = T;
   using pointer = T*;
@@ -16,32 +18,38 @@ struct custom_allocator
   using const_reference = const T&;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
-  template<typename U> struct rebind { typedef custom_allocator<U, factor> other;};
+  template<typename U> struct rebind { typedef CustomAllocator<U, capacity> other;};
 
-  custom_allocator(){}
-  ~custom_allocator(){}
+
+  CustomAllocator(){}
+  ~CustomAllocator()
+  {
+    while (!allocatedArrays.empty())
+      allocatedArrays.pop_back();
+  }
 
   pointer allocate(size_t n) throw (std::bad_alloc)
   {
-    void* result{ manager.capture(n * sizeof(T), factor * n * sizeof(T)) }; /* allocate and reserve*/
-    return reinterpret_cast<T*>(result);
+    if (allocatedArrays.empty()
+        || capacity - offset < n) // actual capacity is exceeded
+    {
+      allocatedArrays.push_back(std::unique_ptr<T[]>{new T [capacity]});
+    }
+    size_t _offset{offset};
+    offset += n;
+    size_t arrayNumber{_offset / capacity};
+    size_t arrayIndex {_offset % capacity}    ;
+    return &(allocatedArrays[arrayNumber].get())[arrayIndex];
   }
 
   void deallocate(T* p, std::size_t n)
   {
-    manager.release(reinterpret_cast<void*>(p));
   }
-
-  void reallocate(T* p, std::size_t n)
-  {
-
-  }
-
 
   template <typename U, typename... Args>
   void construct (U* p, Args&&... args)
   {
-    new(p) U{std::forward<Args>(args)...};
+    ::new(p) U{std::forward<Args>(args)...};
   }
 
   template <typename U>
@@ -50,7 +58,11 @@ struct custom_allocator
     p->~U();
   }
 
-private:
-  memory_manager manager{};
-};
+  void destroy (T* p)
+  {
+  }
 
+private:
+  size_t offset{};
+  std::vector<std::unique_ptr<T[]>> allocatedArrays{};
+};
