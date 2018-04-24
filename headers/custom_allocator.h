@@ -21,7 +21,7 @@ struct CustomAllocator
   template<typename U> struct rebind { typedef CustomAllocator<U, capacity> other;};
 
 
-  CustomAllocator(){}
+  CustomAllocator(){allocatedArrays.reserve(capacity * 2);}
   ~CustomAllocator()
   {
     while (!allocatedArrays.empty())
@@ -31,8 +31,9 @@ struct CustomAllocator
   pointer allocate(size_t n) throw (std::bad_alloc)
   {
     if (allocatedArrays.empty()
-        || capacity - offset < n) // actual capacity is exceeded
+        || capacity*allocatedArrays.size() - offset < n) // actual capacity is exceeded
     {
+
       allocatedArrays.push_back(std::unique_ptr<T[]>{new T [capacity]});
     }
     size_t _offset{offset};

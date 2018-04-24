@@ -10,14 +10,14 @@ template <typename Key, typename Value>
 using CustomAllocatedMap =
 std::map<
           Key, Value, std::less<Key>,
-          CustomAllocator<std::pair<const Key, Value>, 10>
+          CustomAllocator<std::pair<const Key, Value>, 100>
         >;
 
 template <typename Key, typename Value>
 using CustomAllocatedCustomMap =
 CustomMap<
           Key, Value, std::less<Key>,
-          CustomAllocator<Node<std::pair<const Key, Value>>, 10>
+          CustomAllocator<Node<std::pair<const Key, Value>>, 100>
          >;
 
 uint64_t factorial(uint n)
